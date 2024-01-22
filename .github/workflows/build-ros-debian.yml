@@ -1,0 +1,82 @@
+#
+# Copyright (c) 2024, Auterion AG
+# All rights reserved.
+#
+
+name: Build and publish debian package for ROS package
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        description: 'Platform to build for (e.g. linux/amd64 or linux/arm64)'
+        required: true
+      ubuntu-distro:
+        type: string
+        description: 'Ubuntu distribution to build for (e.g. focal)'
+        required: true
+      ros2-distro:
+        type: string
+        description: 'ROS distribution to build for (e.g. humble)'
+        required: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set version in package.xml, if building release
+        if: ${{ github.event.name == 'release' }}
+        run: sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" package.xml
+      
+      - name: Checkout workflow repo
+        uses: actions/checkout@v2
+        with:
+          repository: auterion/ros-debian-workflow
+          path: ros-debian-workflow
+
+      - name: Build build environment
+        working-directory: ros-debian-workflow
+        run: |
+          docker build . -f Dockerfile.debian-buildenv \
+            --platform ${{ inputs.platform }} \
+            --build-arg="ROS2-DISTRO"=${{ inputs.ros2-distro }} \
+            --build-arg="UBUNTU-DISTRO"=${{ inputs.ubuntu-distro }} \
+            -t buildenv:current
+
+      - name: Build debian package
+        run: |
+          docker run --rm -v .:/work --platform ${{ inputs.platform }} buildenv:current
+
+      - name: Upload artifacts to github actions/checkout
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-packages
+          path: output/*.deb
+      
+      - name: Generate upload information
+        run: |
+          echo "DEBIAN_PACKAGE=$(ls output/ | grep '\.deb')" >> $GITHUB_ENV
+
+      - run: |
+          echo "DEBIAN PACKAGE FILE: ${{ env.DEBIAN_PACKAGE }}"
+
+      - name: Push package to cloudsmith
+        if: ${{ github.event_name == 'release' }}
+        uses: cloudsmith-io/action@master
+        with:
+          api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
+          command: 'push'
+          format: 'deb'
+          owner: auterion
+          repo: public
+          distro: ubuntu
+          release: ${{ inputs.ubuntu-distro }}
+          file: output/${{ env.DEBIAN_PACKAGE }}
+
