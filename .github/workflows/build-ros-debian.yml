@@ -51,8 +51,8 @@ jobs:
         run: |
           docker build . -f Dockerfile.debian-buildenv \
             --platform ${{ inputs.platform }} \
-            --build-arg="ROS2-DISTRO"=${{ inputs.ros2-distro }} \
-            --build-arg="UBUNTU-DISTRO"=${{ inputs.ubuntu-distro }} \
+            --build-arg="ROS2_DISTRO=${{ inputs.ros2-distro }}" \
+            --build-arg="UBUNTU_DISTRO=${{ inputs.ubuntu-distro }}" \
             -t buildenv:current
 
       - name: Build debian package
