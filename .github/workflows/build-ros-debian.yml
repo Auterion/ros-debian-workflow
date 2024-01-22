@@ -19,6 +19,11 @@ on:
         type: string
         description: 'ROS distribution to build for (e.g. humble)'
         required: true
+      source-prefix:
+        type: string
+        description: 'Prefix of the source directory for the package'
+        required: true
+        default: '.'
 
 jobs:
   build-and-publish:
@@ -33,7 +38,7 @@ jobs:
 
       - name: Set version in package.xml, if building release
         if: ${{ github.event.name == 'release' }}
-        run: sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" package.xml
+        run: sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" ${{ inputs.source-prefix }}/package.xml
       
       - name: Checkout workflow repo
         uses: actions/checkout@v2
@@ -52,17 +57,17 @@ jobs:
 
       - name: Build debian package
         run: |
-          docker run --rm -v .:/work --platform ${{ inputs.platform }} buildenv:current
+          docker run --rm -v ${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
 
       - name: Upload artifacts to github actions/checkout
         uses: actions/upload-artifact@v3
         with:
           name: debian-packages
-          path: output/*.deb
+          path: ${{ inputs.source-prefix }}/output/*.deb
       
       - name: Generate upload information
         run: |
-          echo "DEBIAN_PACKAGE=$(ls output/ | grep '\.deb')" >> $GITHUB_ENV
+          echo "DEBIAN_PACKAGE=$(ls ${{ inputs.source-prefix }}/output/ | grep '\.deb')" >> $GITHUB_ENV
 
       - run: |
           echo "DEBIAN PACKAGE FILE: ${{ env.DEBIAN_PACKAGE }}"
@@ -78,5 +83,5 @@ jobs:
           repo: public
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
-          file: output/${{ env.DEBIAN_PACKAGE }}
+          file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
 
