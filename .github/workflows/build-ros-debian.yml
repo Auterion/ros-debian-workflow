@@ -22,7 +22,6 @@ on:
       source-prefix:
         type: string
         description: 'Prefix of the source directory for the package'
-        required: true
         default: '.'
 
 jobs:
