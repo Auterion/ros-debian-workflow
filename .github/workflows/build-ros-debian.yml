@@ -36,7 +36,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Set version in package.xml, if building release
-        if: ${{ github.event.name == 'release' }}
+        if: ${{ github.event_name == 'release' }}
         run: sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" ${{ inputs.source-prefix }}/package.xml
       
       - name: Checkout workflow repo
