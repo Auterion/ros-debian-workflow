@@ -37,7 +37,9 @@ jobs:
 
       - name: Set version in package.xml, if building release
         if: ${{ github.event_name == 'release' }}
-        run: sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" ${{ inputs.source-prefix }}/package.xml
+        run: |
+          SANTIZED_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/-/\~/g')
+          sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
       
       - name: Checkout workflow repo
         uses: actions/checkout@v2
