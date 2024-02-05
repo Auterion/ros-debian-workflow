@@ -32,8 +32,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
+
+      - name: Setup docker
+        run: |
+          brew install docker colima
+          colima start
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
 
       - name: Set version in package.xml, if building release
         if: ${{ github.event.name == 'release' }}
