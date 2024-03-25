@@ -33,7 +33,7 @@ RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "cd /work" >> /build_package.sh && \
     echo "rosdep init" >> /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
-    echo "rosdep install --from-paths ." >> /build_package.sh && \
+    echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
     echo "fakeroot debian/rules binary" >> /build_package.sh && \
     echo "mkdir -p /work/output" >> /build_package.sh && \
