@@ -75,7 +75,7 @@ jobs:
 
       - name: Push package to cloudsmith
         if: ${{ github.event_name == 'release' }}
-        uses: cloudsmith-io/action@master
+        uses: cloudsmith-io/action@v0.5.4
         with:
           api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
           command: 'push'
