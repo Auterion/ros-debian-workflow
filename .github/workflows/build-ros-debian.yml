@@ -22,7 +22,7 @@ on:
       source-prefix:
         type: string
         description: 'Prefix of the source directory for the package'
-        default: '.'
+        default: ''
       runner:
         description: "Runner; For example: ubuntu-latest"
         required: false
@@ -63,7 +63,7 @@ jobs:
 
       - name: Build debian package
         run: |
-          docker run --rm -v ./${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
+          docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
 
       - name: Upload artifacts to github actions/checkout
         uses: actions/upload-artifact@v3
