@@ -22,7 +22,7 @@ on:
       source-prefix:
         type: string
         description: 'Prefix of the source directory for the package'
-        default: ''
+        default: '.'
       runner:
         description: "Runner; For example: ubuntu-latest"
         required: false
