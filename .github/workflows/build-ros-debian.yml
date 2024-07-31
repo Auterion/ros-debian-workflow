@@ -113,7 +113,7 @@ jobs:
           command: 'push'
           format: 'deb'
           owner: auterion
-          repo: ${{ env.CLOUDSMITH_REPO }}
+          repo: 'public'
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
           file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
