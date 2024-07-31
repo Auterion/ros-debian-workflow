@@ -43,13 +43,34 @@ jobs:
       - name: Set version in package.xml, if building release
         if: ${{ github.event_name == 'release' }}
         run: |
-          SANTIZED_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/-/\~/g')
-          sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
-      
+          TAG=${{ github.event.release.tag_name }}
+
+          # If prereleasing, extract prerelease version identifier
+          # We separate the prerelease version from the ROS version
+          # because bloom-generate still uses catkin's semantic versioning (i.e. only x.y.z)
+          if [ ${{ github.event.release.prerelease }} == true ] ; then
+            SANITIZED_VERSION=$(echo $TAG | cut -d'-' -f1)
+            if [ "$SANITIZED_VERSION" != "$TAG" ]; then
+              PRERELEASE_IDENTIFIER=$(echo $TAG | cut -d'-' -f2-)
+            fi
+          else
+            SANITIZED_VERSION=$(echo $TAG)
+          fi
+
+          if [ -n "$PRERELEASE_IDENTIFIER" ]; then
+            echo "PRERELEASE_IDENTIFIER=$PRERELEASE_IDENTIFIER" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE_IDENTIFIER=" >> $GITHUB_ENV
+          fi
+          echo "SANITIZED_VERSION=$SANITIZED_VERSION" >> $GITHUB_ENV
+
+          sed -i "s/<version>.*<\/version>/<version>$SANITIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
+
       - name: Checkout workflow repo
         uses: actions/checkout@v2
         with:
           repository: auterion/ros-debian-workflow
+          ref: dont_push_on_prerelease
           path: ros-debian-workflow
 
       - name: Build build environment
@@ -59,6 +80,8 @@ jobs:
             --platform ${{ inputs.platform }} \
             --build-arg="ROS2_DISTRO=${{ inputs.ros2-distro }}" \
             --build-arg="UBUNTU_DISTRO=${{ inputs.ubuntu-distro }}" \
+            --build-arg="RELEASE_VER=${{ env.SANITIZED_VERSION }}" \
+            --build-arg="PRERELEASE_VER=${{ env.PRERELEASE_IDENTIFIER }}" \
             -t buildenv:current
 
       - name: Build debian package
@@ -78,6 +101,10 @@ jobs:
       - run: |
           echo "DEBIAN PACKAGE FILE: ${{ env.DEBIAN_PACKAGE }}"
 
+      - name: Set repository based on release type
+        id: set-repo
+        run: echo "CLOUDSMITH_REPO=${{ github.event.release.prerelease && github.event.release.prerelease == false && 'public' || 'staging' }}" >> $GITHUB_ENV
+
       - name: Push package to cloudsmith
         if: ${{ github.event_name == 'release' }}
         uses: cloudsmith-io/action@v0.5.4
@@ -86,7 +113,7 @@ jobs:
           command: 'push'
           format: 'deb'
           owner: auterion
-          repo: public
+          repo: ${{ env.CLOUDSMITH_REPO }}
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
           file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}

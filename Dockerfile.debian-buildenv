@@ -12,6 +12,8 @@ FROM ros:${ROS2_DISTRO}-ros-base-${UBUNTU_DISTRO}
 
 # Re-request ARGs to make them available in this stage
 ARG ROS2_DISTRO
+# ARG VERSION
+# ARG PRERELEASE_IDENTIFIER
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA
@@ -29,18 +31,20 @@ RUN curl -1sLf \
 
 RUN echo "yaml file:///work/rosdep-${ROS2_DISTRO}.yaml" > /etc/ros/rosdep/sources.list.d/99-local.list
 
+COPY fix-deb-control.sh scripts/fix-deb-control.sh
+
 RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "cd /work" >> /build_package.sh && \
     echo "rosdep init" >> /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
     echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
+    echo "./scripts/fix-deb-control.sh" >> /build_package.sh && \
+    # echo "sed -i 's/$VERSION-0$ROS2_DISTRO/$VERSION~$PRERELEASE_IDENTIFIER-$ROS2_DISTRO/g' debian/changelog" >> /build_package.sh && \
     echo "fakeroot debian/rules binary" >> /build_package.sh && \
     echo "mkdir -p /work/output" >> /build_package.sh && \
     echo "cp ../*.deb /work/output" >> /build_package.sh && \
     echo "cp ../*.ddeb /work/output" >> /build_package.sh && \
     chmod +x /build_package.sh
-
-WORKDIR /work
 
 CMD [ "/ros_entrypoint.sh", "/build_package.sh" ]
