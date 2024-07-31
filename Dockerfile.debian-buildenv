@@ -31,7 +31,7 @@ RUN curl -1sLf \
 
 RUN echo "yaml file:///work/rosdep-${ROS2_DISTRO}.yaml" > /etc/ros/rosdep/sources.list.d/99-local.list
 
-COPY fix-deb-control.sh scripts/fix-deb-control.sh
+COPY fix-deb-control.sh /scripts/fix-deb-control.sh
 
 RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "cd /work" >> /build_package.sh && \
@@ -39,7 +39,8 @@ RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
     echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
-    echo "./scripts/fix-deb-control.sh" >> /build_package.sh && \
+    echo "/scripts/fix-deb-control.sh" >> /build_package.sh && \
+    echo "cat debian/control" >> /build_package.sh && \
     # echo "sed -i 's/$VERSION-0$ROS2_DISTRO/$VERSION~$PRERELEASE_IDENTIFIER-$ROS2_DISTRO/g' debian/changelog" >> /build_package.sh && \
     echo "fakeroot debian/rules binary" >> /build_package.sh && \
     echo "mkdir -p /work/output" >> /build_package.sh && \
