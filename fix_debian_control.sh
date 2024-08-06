@@ -9,6 +9,6 @@ sed -i -E '
     :a
     N
     /^(Build-Depends:|Depends:).*\n/!ba
-    s/([a-zA-Z0-9.-]+)=([a-zA-Z0-9.-]+)/\1 (= \2)/g
+    s/([a-z0-9.-]+)=([a-z0-9.-]+)/\1 (= \2)/g
   }
 ' "$CONTROL_FILE"
