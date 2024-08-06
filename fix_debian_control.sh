@@ -1,9 +1,16 @@
 #!/bin/bash
 
+# rosdep and bloom do not support dependency version pinning.
+# Although rosdep allows versioned package names (e.g., `package=1.2.3`)
+# during dependency installation, bloom does not correctly process these
+# versioned names when generating Debian metadata files.
+
+# Namely the Debian control file should use the format `package (= 1.2.3)`
+# for versioned dependencies. This script updates lines in the 'Build-Depends'
+# and 'Depends' fields to match this format.
+
 CONTROL_FILE="debian/control"
 
-# Fix dependency versioning in Build-Depends and Depends fields produced by bloom-generate
-# e.g. `package=1.2.3` becomes `package (= 1.2.3)`
 sed -i -E '
   /^(Build-Depends:|Depends:)/ {
     :a
