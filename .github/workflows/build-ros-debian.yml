@@ -50,6 +50,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: auterion/ros-debian-workflow
+          ref: test-pinning
           path: ros-debian-workflow
 
       - name: Build build environment
@@ -86,7 +87,7 @@ jobs:
           command: 'push'
           format: 'deb'
           owner: auterion
-          repo: public
+          repo: staging
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
           file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
