@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # rosdep and bloom do not support dependency version pinning.
-# Although rosdep allows versioned package names (e.g., `package=1.2.3`)
+# Rationale: https://answers.ros.org/question/376259/rosdep-install-specific-version-of-dependencies/
+
+# Although rosdep allows versions within package names (e.g., `package=1.2.3`)
 # during dependency installation, bloom does not correctly process these
 # versioned names when generating Debian metadata files.
 
