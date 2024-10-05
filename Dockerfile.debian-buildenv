@@ -5,8 +5,8 @@
 
 # Dockerfile for a build environment to build Debian packages
 
-ARG ROS2_DISTRO
-ARG UBUNTU_DISTRO
+ARG ROS2_DISTRO=humble
+ARG UBUNTU_DISTRO=jammy
 
 FROM ros:${ROS2_DISTRO}-ros-base-${UBUNTU_DISTRO}
 
