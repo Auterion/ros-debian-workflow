@@ -66,7 +66,7 @@ jobs:
           docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
 
       - name: Upload artifacts to github actions/checkout
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debian-packages
           path: ${{ inputs.source-prefix }}/output/*.deb
