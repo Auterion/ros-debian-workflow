@@ -78,16 +78,16 @@ jobs:
       - run: |
           echo "DEBIAN PACKAGE FILE: ${{ env.DEBIAN_PACKAGE }}"
 
-      - name: Push package to cloudsmith
-        if: ${{ github.event_name == 'release' }}
-        uses: cloudsmith-io/action@v0.5.4
-        with:
-          api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
-          command: 'push'
-          format: 'deb'
-          owner: auterion
-          repo: public
-          distro: ubuntu
-          release: ${{ inputs.ubuntu-distro }}
-          file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
+      # - name: Push package to cloudsmith
+      #   if: ${{ github.event_name == 'release' }}
+      #   uses: cloudsmith-io/action@v0.5.4
+      #   with:
+      #     api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
+      #     command: 'push'
+      #     format: 'deb'
+      #     owner: auterion
+      #     repo: public
+      #     distro: ubuntu
+      #     release: ${{ inputs.ubuntu-distro }}
+      #     file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
 
