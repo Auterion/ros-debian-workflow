@@ -65,10 +65,17 @@ jobs:
         run: |
           docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
 
+      - name: Generate artifact name
+        run: |
+          # remove forward slashes from platform name
+          platform_name="${{ inputs.platform }}"
+          platform_name="${platform_name//\//-}"
+          echo "ARTIFACT_NAME=debian-packages_${platform_name}_${{ inputs.ubuntu-distro }}_${{ inputs.ros2-distro }}_${{ inputs.runner }}" >> $GITHUB_ENV
+
       - name: Upload artifacts to github actions/checkout
         uses: actions/upload-artifact@v4
         with:
-          name: debian-packages
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ inputs.source-prefix }}/output/*.deb
       
       - name: Generate upload information
