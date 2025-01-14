@@ -31,6 +31,7 @@ RUN echo "yaml file:///work/rosdep-${ROS2_DISTRO}.yaml" > /etc/ros/rosdep/source
 
 RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
+    echo "/scripts/update_rosdep_yaml.sh /work/rosdep-${ROS2_DISTRO}.yaml" >> /build_package.sh && \
     echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
     echo "/scripts/fix_debian_control.sh" >> /build_package.sh && \
@@ -40,7 +41,7 @@ RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "cp ../*.ddeb /work/output" >> /build_package.sh && \
     chmod +x /build_package.sh
 
-COPY fix_debian_control.sh /scripts/fix_debian_control.sh
+COPY /scripts /scripts
 WORKDIR /work
 
 CMD [ "/ros_entrypoint.sh", "/build_package.sh" ]
