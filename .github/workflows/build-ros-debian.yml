@@ -51,6 +51,7 @@ jobs:
         with:
           repository: auterion/ros-debian-workflow
           path: ros-debian-workflow
+          ref: pin-to-latest
 
       - name: Build build environment
         working-directory: ros-debian-workflow
