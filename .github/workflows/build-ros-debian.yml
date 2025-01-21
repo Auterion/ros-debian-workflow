@@ -59,6 +59,7 @@ jobs:
           echo "SANTIZED_VERSION: $SANTIZED_VERSION"
           cat ${{ inputs.source-prefix }}/package.xml
           sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
+          cat ${{ inputs.source-prefix }}/package.xml
       
       - name: Checkout workflow repo
         uses: actions/checkout@v2
