@@ -54,10 +54,10 @@ jobs:
       - name: Set release version in package.xml, if building from PR
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          cd ${{ inputs.source-prefix }} && SANTIZED_VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.1")-$(git rev-parse --short HEAD)
-          echo $SANITIZED_VERSION
+          cd ${{ inputs.source-prefix }} && SANTIZED_VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.1")+$(git rev-parse --short HEAD)
+          echo "SANTIZED_VERSION: $SANITIZED_VERSION"
           cat ${{ inputs.source-prefix }}/package.xml
-          sed -i "s/\(<version>\)\(.*\)\(<\/version>\)/\1\2+$SANITIZED_VERSION\3/" ${{ inputs.source-prefix }}/package.xml
+          sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
       
       - name: Checkout workflow repo
         uses: actions/checkout@v2
