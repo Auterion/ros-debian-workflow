@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: 'ubuntu-latest'
+      cloudsmith-stage:
+        description: "stage package to cloudsmith on PRs"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-and-publish:
@@ -94,6 +99,19 @@ jobs:
           format: 'deb'
           owner: auterion
           repo: public
+          distro: ubuntu
+          release: ${{ inputs.ubuntu-distro }}
+          file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
+
+      - name: Stage package to cloudsmith
+        if: ${{ github.event_name == 'pull_request' && inputs.cloudsmith-stage == true }}
+        uses: cloudsmith-io/action@v0.5.4
+        with:
+          api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
+          command: 'push'
+          format: 'deb'
+          owner: auterion
+          repo: staging
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
           file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
