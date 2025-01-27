@@ -55,7 +55,8 @@ jobs:
       - name: Set release version in package.xml, if building from PR
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          cd ${{ inputs.source-prefix }} && SANTIZED_VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.1")-1jammy
+          cd ${{ inputs.source-prefix }} && SANTIZED_VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.1").$(git rev-parse --short HEAD)
+          SANTIZED_VERSION="1.8.1+post-213i23d"
           echo "SANTIZED_VERSION: $SANTIZED_VERSION"
           cat ${{ inputs.source-prefix }}/package.xml
           sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
