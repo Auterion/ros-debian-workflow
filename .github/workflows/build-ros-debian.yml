@@ -36,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.AUTERION_CI_ACCESS_TOKEN }}
+          token: ${{ secrets.AUTERION_CI_ACCESS_TOKEN == '' && github.token || secrets.AUTERION_CI_ACCESS_TOKEN }}
           submodules: recursive
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
