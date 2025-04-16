@@ -30,7 +30,9 @@ RUN curl -1sLf \
 RUN echo "yaml file:///work/rosdep-${ROS2_DISTRO}.yaml" > /etc/ros/rosdep/sources.list.d/99-local.list
 
 RUN echo "#!/bin/bash" > /build_package.sh && \
-    echo "/scripts/update_rosdep_yaml.sh /work/rosdep-${ROS2_DISTRO}.yaml" >> /build_package.sh && \
+    echo "set -e" >> /build_package.sh && \
+    echo "/scripts/install_rosdeps.py /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
+    echo "/scripts/update_rosdep_yaml.sh /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
     echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
