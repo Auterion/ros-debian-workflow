@@ -25,20 +25,11 @@ import yaml
 import subprocess
 
 def run_command(command):
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(command, shell=True, text=True)
 
-    for stdout_line in iter(process.stdout.readline, ""):
-        print(stdout_line, end="")
-    for stderr_line in iter(process.stderr.readline, ""):
-        print(stderr_line, end="")
-
-    process.stdout.close()
-    process.stderr.close()
-    return_code = process.wait()
-
-    if return_code != 0:
+    if result.returncode != 0:
         print(f"Error executing command: {command}")
-        sys.exit(return_code)
+        sys.exit(result.returncode)
 
 def main():
     if len(sys.argv) < 2:
