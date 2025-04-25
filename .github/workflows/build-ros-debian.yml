@@ -24,14 +24,14 @@ on:
         description: 'Prefix of the source directory for the package'
         default: '.'
       runner:
-        description: "Runner; For example: ubuntu-latest"
+        description: "Workflow runner (e.g. 8cpu-linux-x64)"
         required: false
         type: string
-        default: 'ubuntu-latest'
+        default: ${{ vars.RUNSON_CI_BUILDER_DEFAULT_X64 }}
 
 jobs:
   build-and-publish:
-    runs-on: ${{ inputs.runner }}
+    runs-on: [runs-on,"runner=${{ inputs.runner }}","run-id=${{ github.run_id }}"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
           # remove forward slashes from platform name
           platform_name="${{ inputs.platform }}"
           platform_name="${platform_name//\//-}"
-          echo "ARTIFACT_NAME=debian-packages_${platform_name}_${{ inputs.ubuntu-distro }}_${{ inputs.ros2-distro }}_${{ inputs.runner }}" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=debian-packages_${platform_name}_${{ inputs.ubuntu-distro }}_${{ inputs.ros2-distro }}" >> $GITHUB_ENV
 
       - name: Upload artifacts to github actions/checkout
         uses: actions/upload-artifact@v4
