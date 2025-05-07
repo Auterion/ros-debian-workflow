@@ -23,7 +23,7 @@ RUN rm /etc/apt/sources.list.d/ros2-latest.list && \
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     dh-make \
     python3-bloom \
     python3-rosdep \
