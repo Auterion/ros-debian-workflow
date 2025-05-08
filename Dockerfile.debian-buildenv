@@ -27,12 +27,14 @@ RUN curl -1sLf \
   'https://dl.cloudsmith.io/public/auterion/public/setup.deb.sh' \
   | bash
 
-RUN echo "yaml file:///work/rosdep-${ROS2_DISTRO}.yaml" > /etc/ros/rosdep/sources.list.d/99-local.list
-
 RUN echo "#!/bin/bash" > /build_package.sh && \
     echo "set -e" >> /build_package.sh && \
-    echo "/scripts/update_rosdep_yaml.sh /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
-    echo "/scripts/install_rosdeps.py /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
+    echo "ROSDEP_YAML=/work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
+    echo "if [ -f \$ROSDEP_YAML ]; then" >> /build_package.sh && \
+    echo "  /scripts/update_rosdep_yaml.sh \$ROSDEP_YAML" >> /build_package.sh && \
+    echo "  /scripts/install_rosdeps.py \$ROSDEP_YAML" >> /build_package.sh && \
+    echo "  echo \"yaml file://\$ROSDEP_YAML\" > /etc/ros/rosdep/sources.list.d/99-local.list" >> /build_package.sh && \
+    echo "fi" >> /build_package.sh && \
     echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
     echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
     echo "bloom-generate rosdebian" >> /build_package.sh && \
