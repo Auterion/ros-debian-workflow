@@ -13,6 +13,14 @@ FROM ros:${ROS2_DISTRO}-ros-base-${UBUNTU_DISTRO}
 # Re-request ARGs to make them available in this stage
 ARG ROS2_DISTRO
 
+# Temporary fix: fetch new rosdep sources list
+# Required until OSRF updates their docker images with the new keyring
+# Waiting on https://github.com/docker-library/official-images/pull/19162
+RUN rm /etc/apt/sources.list.d/ros2-latest.list && \
+    apt update && apt install curl && \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA
 RUN apt update && apt install -y \
