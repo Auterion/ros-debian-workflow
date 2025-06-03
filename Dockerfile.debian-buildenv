@@ -16,8 +16,12 @@ ARG ROS2_DISTRO
 # Temporary fix: fetch new rosdep sources list
 # Required until OSRF updates their docker images with the new keyring
 # Waiting on https://github.com/docker-library/official-images/pull/19162
-RUN rm /etc/apt/sources.list.d/ros2-latest.list && \
-    apt update && apt install curl && \
+RUN if [ "$ROS2_DISTRO" = "humble" ] || [ "$ROS2_DISTRO" = "rolling" ]; then \
+        rm /etc/apt/sources.list.d/ros2-latest.list; \
+    elif [ "$ROS2_DISTRO" = "foxy" ]; then \
+        rm /etc/apt/sources.list.d/ros2-snapshots.list; \
+    fi; \
+    apt update && apt install -y curl && \
     curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
