@@ -52,6 +52,7 @@ jobs:
         with:
           repository: auterion/ros-debian-workflow
           path: ros-debian-workflow
+          ref: followup-ros2-expired-keyring
 
       - name: Build build environment
         working-directory: ros-debian-workflow
