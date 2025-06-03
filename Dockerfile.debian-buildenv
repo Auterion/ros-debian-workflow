@@ -16,10 +16,12 @@ ARG ROS2_DISTRO
 # Temporary fix: fetch new rosdep sources list
 # Required until OSRF updates their docker images with the new keyring
 # Waiting on https://github.com/docker-library/official-images/pull/19162
-RUN if [ "$ROS2_DISTRO" = "humble" ] || [ "$ROS2_DISTRO" = "rolling" ]; then \
+RUN if [ "$ROS2_DISTRO" = "humble" ] || [ "$ROS2_DISTRO" = "jazzy" ] || [ "$ROS2_DISTRO" = "rolling" ]; then \
         rm /etc/apt/sources.list.d/ros2-latest.list; \
     elif [ "$ROS2_DISTRO" = "foxy" ]; then \
         rm /etc/apt/sources.list.d/ros2-snapshots.list; \
+    else \
+        echo "Warning: Unrecognized ROS2_DISTRO '$ROS2_DISTRO'. The apt key might be broken."; \
     fi; \
     apt update && apt install -y curl && \
     curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
