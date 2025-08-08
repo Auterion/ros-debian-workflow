@@ -49,16 +49,20 @@ def main():
         if isinstance(val, dict) and 'ubuntu' in val:
             ubuntu_deps = val['ubuntu']
             if isinstance(ubuntu_deps, str):
-                packages.add(ubuntu_deps)
+                if '=' in ubuntu_deps:
+                    packages.add(ubuntu_deps)
             elif isinstance(ubuntu_deps, list):
-                packages.update(ubuntu_deps)
+                for ubuntu_dep in ubuntu_deps:
+                    if '=' in ubuntu_dep:
+                        packages.add(ubuntu_dep)
 
-    print(f"Manually installing the following packages via APT, before rosdep scan:")
-    for package in packages:
-        print(f"  - {package}")
+    if len(packages) > 0:
+        print(f"Manually installing the following packages via APT, before rosdep scan:")
+        for package in packages:
+            print(f"  - {package}")
 
-    run_command("apt update")
-    run_command(f"apt install -y {' '.join(sorted(packages))}")
+        run_command("apt update")
+        run_command(f"apt install -y {' '.join(sorted(packages))}")
 
 if __name__ == "__main__":
     main()
