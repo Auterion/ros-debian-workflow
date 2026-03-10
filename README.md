@@ -1,6 +1,8 @@
 # Reusable workflow for building Auterion public ROS2 Debian packages
 
 ## Example usage
+
+### Single package
 ```yaml
 jobs:
   build:
@@ -30,6 +32,24 @@ jobs:
       source-prefix: px4_ros2_cpp # Optional, defaults to '.'
     secrets: inherit
 ```
+
+### Multiple packages from one repo
+For repositories containing multiple ROS packages, use the `packages` input to specify
+subdirectories in dependency order (comma-separated):
+```yaml
+    uses: Auterion/ros-debian-workflow/.github/workflows/build-ros-debian.yml@main
+    with:
+      platform: ${{ matrix.platform.platform }}
+      ubuntu-distro: ${{ matrix.distro.ubuntu }}
+      ros2-distro: ${{ matrix.distro.ros2 }}
+      runner: ${{ matrix.platform.runner }}
+      source-prefix: services/nemyx/src/trellys
+      packages: "trellys_msgs,trellys"
+    secrets: inherit
+```
+Packages are built sequentially. Each built `.deb` is installed before building the next,
+so inter-package dependencies are resolved automatically.
+
 This will also publish the packages to Cloudsmith if the `release` event is triggered.
 
 ## Local usage
@@ -39,7 +59,7 @@ To do so, first build the build environment docker container (only required once
 ./build_env.sh
 ```
 
-Then, build a package:
+### Single package
 ```bash
 ./build_pkg.sh <path/to/package> <version> [<.deb dependencies>]
 ```
@@ -48,3 +68,14 @@ For example:
 ./build_pkg.sh px4-ros2-interface-lib/px4_ros2_cpp 0.0.100 \
     ros-humble-px4-msgs_0.0.100-0jammy_arm64.deb
 ```
+
+### Multiple packages
+```bash
+./build_pkg.sh <path/to/parent> <version> --packages <pkg1,pkg2,...> [<.deb dependencies>]
+```
+For example:
+```bash
+./build_pkg.sh trellys 0.0.100 --packages trellys_msgs,trellys
+```
+Packages are built in the specified order. Previously built `.deb` files within the same
+run are automatically available as dependencies for subsequent packages.
