@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: true
+      workflow-ref:
+        description: "Git ref of ros-debian-workflow to use (must match the ref in 'uses:')"
+        required: false
+        type: string
+        default: 'main'
 
 jobs:
   build-and-publish:
@@ -65,9 +70,10 @@ jobs:
           fi
       
       - name: Checkout workflow repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: auterion/ros-debian-workflow
+          ref: ${{ inputs.workflow-ref }}
           path: ros-debian-workflow
 
       - name: Build build environment
