@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: ${{ vars.RUNSON_CI_BUILDER_DEFAULT_X64 }}
+      public:
+        description: "Push to 'public' repo on cloudsmith (if false, push to 'apps')"
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build-and-publish:
@@ -94,7 +99,7 @@ jobs:
           command: 'push'
           format: 'deb'
           owner: auterion
-          repo: public
+          repo: ${{ inputs.public && 'public' || 'apps' }}
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
           file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
