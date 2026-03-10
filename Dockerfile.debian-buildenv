@@ -36,29 +36,7 @@ RUN curl -1sLf \
   'https://dl.cloudsmith.io/public/auterion/public/setup.deb.sh' \
   | bash
 
-RUN echo "#!/bin/bash" > /build_package.sh && \
-    echo "set -e" >> /build_package.sh && \
-    echo "if [[ -f \"/work/rosdep-$ROS2_DISTRO.yaml\" ]]; then" >> /build_package.sh && \
-    echo "  /scripts/update_rosdep_yaml.sh /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
-    echo "  /scripts/install_rosdeps.py /work/rosdep-$ROS2_DISTRO.yaml" >> /build_package.sh && \
-    echo "  echo \"yaml file:///work/rosdep-$ROS2_DISTRO.yaml\" > /etc/ros/rosdep/sources.list.d/99-local.list" >> /build_package.sh && \
-    echo "else" >> /build_package.sh && \
-    echo "  echo \"rosdep YAML file not found.\"" >> /build_package.sh && \
-    echo "fi" >> /build_package.sh && \
-    echo "rosdep update --rosdistro=$ROS2_DISTRO" >> /build_package.sh && \
-    echo "rosdep install --from-paths . -y -v" >> /build_package.sh && \
-    echo "bloom-generate rosdebian" >> /build_package.sh && \
-    echo "/scripts/fix_debian_control.sh" >> /build_package.sh && \
-    echo "/scripts/fix_debian_parallel_build.sh" >> /build_package.sh && \
-    echo "export DEB_BUILD_OPTIONS=\"parallel=\$(nproc) notest nocheck\"" >> /build_package.sh && \
-    echo "fakeroot debian/rules clean" >> /build_package.sh && \
-    echo "fakeroot debian/rules binary" >> /build_package.sh && \
-    echo "mkdir -p /work/output" >> /build_package.sh && \
-    echo "cp ../*.deb /work/output" >> /build_package.sh && \
-    echo "cp ../*.ddeb /work/output" >> /build_package.sh && \
-    chmod +x /build_package.sh
-
 COPY /scripts /scripts
 WORKDIR /work
 
-CMD [ "/ros_entrypoint.sh", "/build_package.sh" ]
+CMD [ "/ros_entrypoint.sh", "/scripts/build_package.sh" ]
