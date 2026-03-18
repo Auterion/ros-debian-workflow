@@ -21,13 +21,27 @@ on:
         required: true
       source-prefix:
         type: string
-        description: 'Prefix of the source directory for the package'
+        description: 'Prefix of the source directory for the package(s)'
         default: '.'
+      packages:
+        type: string
+        description: 'Comma-separated list of package subdirectories to build in dependency order (e.g. "msgs,core"). If empty, builds the single package at source-prefix root.'
+        default: ''
       runner:
         description: "Workflow runner (e.g. 8cpu-linux-x64)"
         required: false
         type: string
         default: ${{ vars.RUNSON_CI_BUILDER_DEFAULT_X64 }}
+      public:
+        description: "Push to 'public' repo on cloudsmith (if false, push to 'apps')"
+        required: false
+        type: boolean
+        default: true
+      workflow-ref:
+        description: "Git ref of ros-debian-workflow to use (must match the ref in 'uses:')"
+        required: false
+        type: string
+        default: 'main'
 
 jobs:
   build-and-publish:
@@ -45,12 +59,21 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         run: |
           SANTIZED_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/-/\~/g')
-          sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
+          if [ -n "${{ inputs.packages }}" ]; then
+            IFS=',' read -ra PKGS <<< "${{ inputs.packages }}"
+            for pkg in "${PKGS[@]}"; do
+              pkg=$(echo "$pkg" | xargs)
+              sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" "${{ inputs.source-prefix }}/$pkg/package.xml"
+            done
+          else
+            sed -i "s/<version>.*<\/version>/<version>$SANTIZED_VERSION<\/version>/" ${{ inputs.source-prefix }}/package.xml
+          fi
       
       - name: Checkout workflow repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: auterion/ros-debian-workflow
+          ref: ${{ inputs.workflow-ref }}
           path: ros-debian-workflow
 
       - name: Build build environment
@@ -63,8 +86,13 @@ jobs:
             -t buildenv:current
 
       - name: Build debian package
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
         run: |
-          docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current
+          docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work \
+            -e CLOUDSMITH_API_KEY="${CLOUDSMITH_API_KEY}" \
+            --platform ${{ inputs.platform }} buildenv:current \
+            /ros_entrypoint.sh /scripts/build_package.sh "${{ inputs.packages }}"
 
       - name: Generate artifact name
         run: |
@@ -79,23 +107,34 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ inputs.source-prefix }}/output/*.deb
       
-      - name: Generate upload information
+      - name: List built packages
         run: |
-          echo "DEBIAN_PACKAGE=$(ls ${{ inputs.source-prefix }}/output/ | grep '\.deb')" >> $GITHUB_ENV
+          echo "Built packages:"
+          ls -la ${{ inputs.source-prefix }}/output/*.deb
 
-      - run: |
-          echo "DEBIAN PACKAGE FILE: ${{ env.DEBIAN_PACKAGE }}"
-
-      - name: Push package to cloudsmith
-        if: ${{ github.event_name == 'release' }}
+      - name: Push single package to cloudsmith
+        if: ${{ github.event_name == 'release' && inputs.packages == '' }}
         uses: cloudsmith-io/action@v0.5.4
         with:
           api-key: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
           command: 'push'
           format: 'deb'
           owner: auterion
-          repo: public
+          repo: ${{ inputs.public && 'public' || 'apps' }}
           distro: ubuntu
           release: ${{ inputs.ubuntu-distro }}
-          file: ${{ inputs.source-prefix }}/output/${{ env.DEBIAN_PACKAGE }}
+          file: ${{ inputs.source-prefix }}/output/*.deb
+
+      - name: Push multiple packages to cloudsmith
+        if: ${{ github.event_name == 'release' && inputs.packages != '' }}
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
+        run: |
+          pip install --upgrade cloudsmith-cli
+          REPO="${{ inputs.public && 'public' || 'apps' }}"
+          for deb in ${{ inputs.source-prefix }}/output/*.deb; do
+            [ -f "$deb" ] || continue
+            echo "Pushing $(basename $deb) to auterion/$REPO..."
+            cloudsmith push deb "auterion/$REPO/ubuntu/${{ inputs.ubuntu-distro }}" "$deb"
+          done
 
