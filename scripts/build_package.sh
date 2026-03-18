@@ -6,6 +6,13 @@
 
 set -e
 
+# If a Cloudsmith API key is provided, add the private auterion/apps repo
+if [ -n "$CLOUDSMITH_API_KEY" ]; then
+  echo "Adding auterion/apps Cloudsmith repository..."
+  curl -1sLf "https://dl.cloudsmith.io/${CLOUDSMITH_API_KEY}/auterion/apps/setup.deb.sh" | bash
+  apt-get update -qq
+fi
+
 # ROS_DISTRO is set by the ROS base image
 DISTRO=${ROS_DISTRO}
 
