@@ -9,7 +9,7 @@ set -e
 # If a Cloudsmith API key is provided, add the private auterion/apps repo
 if [ -n "$CLOUDSMITH_API_KEY" ]; then
   echo "Adding auterion/apps Cloudsmith repository..."
-  curl -1sLf "https://dl.cloudsmith.io/${CLOUDSMITH_API_KEY}/auterion/apps/setup.deb.sh" | bash
+  curl -u "token:${CLOUDSMITH_API_KEY}" -1sLf "https://dl.cloudsmith.io/basic/auterion/apps/setup.deb.sh" | bash
   apt-get update -qq
 fi
 
