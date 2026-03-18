@@ -86,8 +86,12 @@ jobs:
             -t buildenv:current
 
       - name: Build debian package
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.AUTERION_CI_CLOUDSMITH_API_KEY }}
         run: |
-          docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work --platform ${{ inputs.platform }} buildenv:current \
+          docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work \
+            -e CLOUDSMITH_API_KEY="${CLOUDSMITH_API_KEY}" \
+            --platform ${{ inputs.platform }} buildenv:current \
             /ros_entrypoint.sh /scripts/build_package.sh "${{ inputs.packages }}"
 
       - name: Generate artifact name
