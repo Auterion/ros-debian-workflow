@@ -81,11 +81,12 @@ for pkg in "${PACKAGES[@]}"; do
     apt-get install -f -y
   fi
 
-  SKIP_ARGS=""
+  # One argument: rosdep splits it on spaces, unquoted the second key would be a path.
+  SKIP_ARGS=()
   if [ -n "$SKIP_KEYS" ]; then
-    SKIP_ARGS="--skip-keys=$SKIP_KEYS"
+    SKIP_ARGS=(--skip-keys "$SKIP_KEYS")
   fi
-  rosdep install --from-paths . -y -v $SKIP_ARGS
+  rosdep install --from-paths . -y -v "${SKIP_ARGS[@]}"
 
   bloom-generate rosdebian
   /scripts/fix_debian_control.sh
