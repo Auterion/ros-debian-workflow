@@ -81,7 +81,7 @@ for pkg in "${PACKAGES[@]}"; do
     apt-get install -f -y
   fi
 
-  # One argument: rosdep splits it on spaces, unquoted the second key would be a path.
+  # One argument: rosdep splits it on spaces.
   SKIP_ARGS=()
   if [ -n "$SKIP_KEYS" ]; then
     SKIP_ARGS=(--skip-keys "$SKIP_KEYS")
