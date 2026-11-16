@@ -58,7 +58,17 @@ jobs:
       - name: Set version in package.xml, if building release
         if: ${{ github.event_name == 'release' }}
         run: |
-          SANTIZED_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/-/\~/g')
+          # package.xml only accepts X.Y.Z, so a suffix goes into the Debian version instead:
+          # tag 3.5.18-marine -> package.xml 3.5.18, Debian version 3.5.18~marine-0<distro>,
+          # which sorts below 3.5.18
+          TAG="${{ github.event.release.tag_name }}"
+          SANTIZED_VERSION=$(echo "$TAG" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' || true)
+          if [ -z "$SANTIZED_VERSION" ]; then
+            echo "Release tag $TAG does not start with X.Y.Z"
+            exit 1
+          fi
+          DEB_VERSION_SUFFIX=$(echo "${TAG#"$SANTIZED_VERSION"}" | sed 's/-/\~/g')
+          echo "DEB_VERSION_SUFFIX=$DEB_VERSION_SUFFIX" >> "$GITHUB_ENV"
           if [ -n "${{ inputs.packages }}" ]; then
             IFS=',' read -ra PKGS <<< "${{ inputs.packages }}"
             for pkg in "${PKGS[@]}"; do
@@ -91,6 +101,7 @@ jobs:
         run: |
           docker run --rm -v $(pwd)/${{ inputs.source-prefix }}:/work \
             -e CLOUDSMITH_API_KEY="${CLOUDSMITH_API_KEY}" \
+            -e DEB_VERSION_SUFFIX="${DEB_VERSION_SUFFIX}" \
             --platform ${{ inputs.platform }} buildenv:current \
             /ros_entrypoint.sh /scripts/build_package.sh "${{ inputs.packages }}"
 
