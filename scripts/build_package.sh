@@ -89,6 +89,10 @@ for pkg in "${PACKAGES[@]}"; do
   rosdep install --from-paths . -y -v "${SKIP_ARGS[@]}"
 
   bloom-generate rosdebian
+  if [ -n "$DEB_VERSION_SUFFIX" ]; then
+    # e.g. (3.5.18-0jammy) -> (3.5.18~marine-0jammy)
+    sed -i "1s/(\([0-9][0-9.]*\)-/(\1${DEB_VERSION_SUFFIX}-/" debian/changelog
+  fi
   /scripts/fix_debian_control.sh
   /scripts/fix_debian_parallel_build.sh
 
