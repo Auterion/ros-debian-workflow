@@ -52,6 +52,20 @@ so inter-package dependencies are resolved automatically.
 
 This will also publish the packages to Cloudsmith if the `release` event is triggered.
 
+### Release tags and package versions
+On a `release` event, the version comes from the release tag. The tag must start with
+`X.Y.Z` (no `v` prefix), optionally followed by a suffix:
+
+| Release tag     | `package.xml` version | Debian package                                  |
+|-----------------|-----------------------|-------------------------------------------------|
+| `3.5.18`        | `3.5.18`              | `ros-humble-<pkg>_3.5.18-0jammy_arm64.deb`        |
+| `3.5.18-marine` | `3.5.18`              | `ros-humble-<pkg>_3.5.18~marine-0jammy_arm64.deb` |
+
+`package.xml` only accepts `X.Y.Z`, so the suffix is added to the Debian version only,
+with `-` replaced by `~`. A `~` sorts lower than anything else in Debian versions, so
+`3.5.18~marine` is considered older than `3.5.18` and a plain `3.5.18` release takes
+precedence over the suffixed one.
+
 ## Local usage
 Debian packages can be built locally.
 To do so, first build the build environment docker container (only required once):
